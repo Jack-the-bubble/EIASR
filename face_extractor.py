@@ -7,12 +7,46 @@ from numpy.core.multiarray import ndarray
 
 
 '''
+get information from image filename
+
+returns dictionary with person number, series number, file number 
+    in directory, vertical and horizontal angle in degrees
+
+:return img_data dictionary with img data 
+'''
+
+
+def get_img_data(img_path):
+    img_data = {
+        'person_number': 0,
+        'series_number': 0,
+        'file_number': 0,
+        'vertical': 0,
+        'horizontal': 0
+    }
+    filename = img_path.split(os.sep)[-1]
+    data = re.findall("\d*\d", filename)
+    signs = re.findall('[+ -]', filename)
+    img_data['person_number'] = int(data[0][0:1])
+    img_data['series_number'] = int(data[0][2])
+    img_data['file_number'] = int(data[0][3:4])
+    img_data['vertical'] = \
+        int(data[1]) if signs[0] == '+' else -int(data[1])
+    img_data['horizontal'] = \
+        int(data[2]) if signs[1] == '+' else -int(data[2])
+
+    return img_data
+
+
+'''
 get roi coordinates with face of corresponding image
 
 :param img_path path to file to get face coordinates from
 
 :return faces ndarray with x, y, width and height of a face
 '''
+
+
 def get_face_from_metadata(img_path):
     txt_path = img_path[:-3]+'txt'
     faces = ndarray(shape=(1, 4), dtype=int)
@@ -36,6 +70,8 @@ def get_face_from_metadata(img_path):
 '''
 This class uses OpenCV library to find faces in images and preprocess them
 '''
+
+
 class FaceExtractor:
 
     '''
@@ -119,7 +155,7 @@ class FaceExtractor:
     '''
     def _preprocess_img(self, img_path, use_metadata=False):
         img = cv.imread(img_path)
-        img_data = self.get_img_data(img_path)
+        img_data = get_img_data(img_path)
         desired_size = (128, 128)
         threshold = 30
         prep_images = []
@@ -157,31 +193,4 @@ class FaceExtractor:
         return prep_images
 
 
-    '''
-    get information from image filename
-    
-    returns dictionary with person number, series number, file number 
-        in directory, vertical and horizontal angle in degrees
-        
-    :return img_data dictionary with img data 
-    '''
-    def get_img_data(self, img_path):
-        img_data = {
-            'person_number': 0,
-            'series_number': 0,
-            'file_number': 0,
-            'vertical': 0,
-            'horizontal': 0
-        }
-        filename = img_path.split(os.sep)[-1]
-        data = re.findall("\d*\d", filename)
-        signs = re.findall('[+ -]', filename)
-        img_data['person_number'] = int(data[0][0:1])
-        img_data['series_number'] = int(data[0][2])
-        img_data['file_number'] = int(data[0][3:4])
-        img_data['vertical'] = \
-            int(data[1]) if signs[0] == '+' else -int(data[1])
-        img_data['horizontal'] = \
-            int(data[2]) if signs[1] == '+' else -int(data[2])
 
-        return img_data
