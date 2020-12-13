@@ -1,6 +1,37 @@
 import cv2 as cv
+import numpy
 import os
 import re
+
+from numpy.core.multiarray import ndarray
+
+
+'''
+get roi coordinates with face of corresponding image
+
+:param img_path path to file to get face coordinates from
+
+:return faces ndarray with x, y, width and height of a face
+'''
+def get_face_from_metadata(img_path):
+    txt_path = img_path[:-3]+'txt'
+    faces = ndarray(shape=(1, 4), dtype=int)
+
+    try:
+        with open(txt_path, 'r') as in_file:
+            file_content = in_file.readlines()
+    except FileNotFoundError as e:
+        print("Image {} does not have a corresponding .txt file.".format(
+            img_path))
+        return None
+
+    faces[0] = [int(file_content[-4])-int(file_content[-2])/2,
+                int(file_content[-3])-int(file_content[-1])/2,
+                int(file_content[-2]),
+                int(file_content[-1])]
+
+    return faces
+
 
 '''
 This class uses OpenCV library to find faces in images and preprocess them
@@ -22,6 +53,7 @@ class FaceExtractor:
         self.ext_list = ['.jpg', '.bmp', '.png']
 
 
+
     '''
     Main function of the class to prepare images before executing 
     the core algorithm in the project
@@ -36,7 +68,7 @@ class FaceExtractor:
         img_paths = self._get_img_paths()
 
         for img in img_paths:
-            preprocessed_faces = self._preprocess_img(img)
+            preprocessed_faces = self._preprocess_img(img, use_metadata=True)
             dir_list = img.split(os.sep)
             nested_dir = dir_list[-2]
             file_name = dir_list[-1]
@@ -47,11 +79,6 @@ class FaceExtractor:
             for count, face in enumerate(preprocessed_faces):
                 cv.imwrite(os.path.join(current_out_dir,
                                         str(count)+file_name), face)
-                # cv.imshow('ROI', face)
-                # cv.waitKey(0)
-
-        #     save to new directory
-
 
 
     '''
@@ -84,16 +111,18 @@ class FaceExtractor:
     '''
     finds face, crops the image to match the face, changes color space, scale
     
+    :param img_path path to the image to preprocess
+    :param use_metadata set if corresponding .txt file exists 
+        with face coordinates
+    
     :return prep_images list of preprocessed images objects of found faces
     '''
-    def _preprocess_img(self, img_path):
-        # TODO
-        #     move to grayscale
-        #     scale the image
-        threshold = 30
-        prep_images = []
+    def _preprocess_img(self, img_path, use_metadata=False):
         img = cv.imread(img_path)
         img_data = self.get_img_data(img_path)
+        desired_size = (128, 128)
+        threshold = 30
+        prep_images = []
 
         # flip image, because cascade can recognize only right-facing heads
         if img_data['horizontal'] > threshold:
@@ -106,21 +135,24 @@ class FaceExtractor:
             self.face_cascade = cv.CascadeClassifier(self.cascade_path['front'])
 
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        faces = self.face_cascade.detectMultiScale(gray, 1.05, 3)
+        if use_metadata:
+            faces = get_face_from_metadata(img_path)
+        else:
+            faces = self.face_cascade.detectMultiScale(gray, 1.05, 3)
 
         # Draw rectangle around the faces
-        for (x, y, w, h) in faces:
-            # for now in color
-            roi = img[y:y+h, x:x+w, :]
+        if faces is not None:
+            for (x, y, w, h) in faces:
+                # flip back if head is supposed to be facing left
+                if img_data['horizontal'] > threshold:
+                    gray = cv.flip(gray, 1)
 
-            # flip back if head is supposed to be facing left
-            if img_data['horizontal'] > threshold:
-                roi = cv.flip(roi, 1)
+                roi = gray[y:y+h, x:x+w]
+                roi = cv.resize(roi, desired_size)
+                prep_images.append(roi)
 
-            prep_images.append(roi)
-
-            # for now we want to find only one face in a picture, for learning
-            break
+                # for now we want to find only one face in a picture, for learning
+                break
 
         return prep_images
 
