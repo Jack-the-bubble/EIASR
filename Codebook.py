@@ -15,11 +15,12 @@ class Codebook:
         '''
         constructor function for the class
         '''
+        self.templates_list = []
         self.ext_list = ['.jpg', '.bmp', '.png']
 
 
     
-    def create_codebook(self,in_path = 'cropped_images', out_path = 'Codebook_cell8x8'):
+    def create_codebook(self,in_path = 'cropped_images', out_path = 'Codebook'):
         '''
         Main function of the class to prepare codebook
         Function loads in sequence all preprocesses image files from specified in_path,
@@ -42,15 +43,12 @@ class Codebook:
         printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
         for img in img_paths:
-            #iter = iter + 1
             hog_features_vect = self.Calc_descriptors(img)
-            #print("Shape of hog array: r= {}, c= {}".format(hog_features_vect.shape[0], hog_features_vect.shape[1]))
             dir_list = img.split(os.sep)
             file_name = dir_list[-1] # get filename of jpeg image file
-            file_name = os.path.splitext(file_name)[0] + ".txt" # change extension to txt
+            file_name = os.path.splitext(file_name)[0] + ".npy" # change extension
             outfile = os.path.join(out_path, file_name)
-            numpy.savetxt(outfile, hog_features_vect)
-            #if iter == 3: break
+            numpy.save(outfile, hog_features_vect)
             #time.sleep(0.1)
             # Update Progress Bar
             i = i + 1
@@ -180,43 +178,68 @@ class Codebook:
         return hog_features;
 
 
-    def Estimate_angles_for_img(self, test_img_path, codebook_path = 'Codebook'):
+    def Estimate_angles_for_img(self, test_img_path):
         '''
         Calculate descriptors (HOG) for test image, finding best matching
         feature vector in Codebook and based on that information estimating angles
 
-        :param img_path directory to image for estimate face orientation
-
         :return verical_angle & horizontal_angle estimated for input image
         '''
 
-        template_paths = self._get_template_paths(codebook_path)
         distance = 100000
         verical_angle = 0; horizontal_angle = 0
 
         test_img_hog = self.Calc_descriptors(test_img_path)
-        
         print("Estimating orientation for: " + test_img_path)
 
         # Initial call to print 0% progress
-        l = len(template_paths)
+        l = len(self.templates_list)
         i = 0
         printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
-
-        for template_path in template_paths:
-            loaded_hog = numpy.loadtxt(template_path)
-            if not( test_img_hog.shape[0] == loaded_hog.shape[0]):
+  
+        for template in self.templates_list:
+            if not( test_img_hog.shape[0] == template['hog'].shape[0]):
                 continue
-            temp = numpy.linalg.norm(loaded_hog - test_img_hog)
+            temp = numpy.linalg.norm( (template['hog'] - test_img_hog) )
             if( temp < distance): 
                 distance = temp
-                vertical_angle, horizontal_angle = self.get_template_data(template_path)
+                vertical_angle, horizontal_angle = template['vertical'], template['horizontal']
 
             # Update Progress Bar
             i = i + 1
             printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
         return verical_angle, horizontal_angle
+
+
+
+    def Load_codebook_to_mem(self, codebook_path = 'Codebook'):
+        '''
+        Load codebook templates to memory for later estimating head orientation
+
+        :param codebook_path directory to image for estimate face orientation 
+        '''
+        template_paths = self._get_template_paths(codebook_path)
+
+        print("Loading Codebook from files...")
+        # Initial call to print 0% progress
+        l = len(template_paths)
+        i = 0
+        printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+        for template_path in template_paths:
+            template = {
+                'hog' : 0,
+                'vertical': 0,
+                'horizontal': 0
+            }
+            template['hog'] = numpy.load(template_path)
+            template['vertical'], template['horizontal'] = \
+                self.get_template_data(template_path)
+            self.templates_list.append(template)
+           # Update Progress Bar
+            i = i + 1
+            printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
 
     # Print iterations progress

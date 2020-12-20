@@ -5,6 +5,7 @@ import Codebook as cb
 #extractor.preprocess_images()
 
 codebook = cb.Codebook()
-#codebook.create_codebook()
-v_angle, h_angle = codebook.Estimate_angles_for_img('cropped_images_copy/Person15/0person15115-30-75.jpg', 'Codebook_cell8x8')
+#codebook.create_codebook('cropped_images', 'Codebook_cell8x8')
+codebook.Load_codebook_to_mem('Codebook_cell8x8')
+v_angle, h_angle = codebook.Estimate_angles_for_img('cropped_images_copy/Person15/0person15115-30-75.jpg')
 print("Estimated orientation: Vertical= {}, Horizontal= {}".format(v_angle, h_angle))
