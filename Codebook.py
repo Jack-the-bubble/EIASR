@@ -187,7 +187,7 @@ class Codebook:
         '''
 
         distance = 100000
-        verical_angle = 0; horizontal_angle = 0
+        vertical_angle = 0; horizontal_angle = 0
 
         test_img_hog = self.Calc_descriptors(test_img_path)
         print("Estimating orientation for: " + test_img_path)
@@ -204,12 +204,12 @@ class Codebook:
             if( temp < distance): 
                 distance = temp
                 vertical_angle, horizontal_angle = template['vertical'], template['horizontal']
-
+            
             # Update Progress Bar
             i = i + 1
             printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
-        return verical_angle, horizontal_angle
+        return vertical_angle, horizontal_angle
 
 
 
