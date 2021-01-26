@@ -198,7 +198,7 @@ class Codebook:
                                     _nbins=nbins)
         hog_features = hog_desc.compute(img)
 
-        return hog_features;
+        return hog_features
 
 
 

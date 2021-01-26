@@ -185,11 +185,42 @@ class FaceExtractor:
                 roi = cv.resize(roi, desired_size)
                 prep_images.append(roi)
 
-                # for now we want to find only one face in a picture, for learning
+                # we want to find only one face in a picture, for learning
                 break
 
         return prep_images
 
+    '''
+    looks for face in image with specified path, changes color space, scale
+    
+    :param img_path path to the image to preprocess
+    
+    :return prep_images list of preprocessed images objects of found faces
+    '''
+    def preprocess_image_from_path(self, img_path):
+        img = cv.imread(img_path)
+        desired_size = (128, 128)
+        threshold = 30
+        prep_images = []
+
+        # check front first
+        self.face_cascade = cv.CascadeClassifier(self.cascade_path['front'])
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+        faces = self.face_cascade.detectMultiScale(gray, 1.05, 3)
+
+        if faces is not None:
+            for (x, y, w, h) in faces:
+                roi = gray[y:y + h, x:x + w]
+                roi = cv.resize(roi, desired_size)
+                prep_images.append(roi)
+                # only calculate orientation for the first detected face
+                break
+
+            return prep_images
+
+        # check right side
+
+        # then check left side
 
 
     def _preprocess_cam_img(self, img):
