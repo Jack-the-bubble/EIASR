@@ -12,5 +12,6 @@ model.model = load_model('saved_model.h5')
 ex = ntw.get_example('Codebook_cell8x8\\0person01118-30-30.npy')
 
 ex = np.array([ex])
+print(ex.shape)
 print(model.predict(ex))
 

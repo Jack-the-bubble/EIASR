@@ -78,7 +78,7 @@ def get_example(example_path):
 
 def create_model():
     model = Sequential()
-    model.add(Dense(144, input_dim=144, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(144, input_dim=8100, kernel_initializer='normal', activation='relu'))
     model.add(Dense(2, kernel_initializer='normal'))
 
     model.compile(loss='mean_squared_error', optimizer='adam')

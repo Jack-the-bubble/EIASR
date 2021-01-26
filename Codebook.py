@@ -5,12 +5,12 @@ import re
 
 import face_extractor
 
-
 class Codebook:
     """Codebook conatins larened feature vectors saved in txt files,
         each feature vector consist of calculated HOG for image,
         txt filenames in codebook corresponds to image file from learning set """
 
+   
     def __init__(self):
         '''
         constructor function for the class
@@ -18,41 +18,44 @@ class Codebook:
         self.templates_list = []
         self.ext_list = ['.jpg', '.bmp', '.png']
 
-    def create_codebook(self, in_path='cropped_images', out_path='Codebook'):
+
+    
+    def create_codebook(self,in_path = 'cropped_images', out_path = 'Codebook'):
         '''
         Main function of the class to prepare codebook
         Function loads in sequence all preprocesses image files from specified in_path,
         and create feature vector for each image
 
         :param in_path root directory for all the cropped images prepared for learning
-        :param out_path root directory to store codebook
+        :param out_path root directory to store codbook
         '''
 
         if not os.path.isdir(out_path):
             os.mkdir(out_path)
 
         img_paths = self._get_img_paths(in_path)
-        iter = 0  # to test purpose
+        iter = 0 #to test purpose
         print("Creating codebook...")
 
         # Initial call to print 0% progress
         l = len(img_paths)
         i = 0
-        printProgressBar(0, l, prefix='Progress:', suffix='Complete', length=50)
+        printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
         for img in img_paths:
             hog_features_vect = self.Calc_descriptors(img)
             dir_list = img.split(os.sep)
-            file_name = dir_list[-1]  # get filename of jpeg image file
-            file_name = os.path.splitext(file_name)[0] + ".npy"  # change extension
+            file_name = dir_list[-1] # get filename of jpeg image file
+            file_name = os.path.splitext(file_name)[0] + ".npy" # change extension
             outfile = os.path.join(out_path, file_name)
             numpy.save(outfile, hog_features_vect)
-            # time.sleep(0.1)
+            #time.sleep(0.1)
             # Update Progress Bar
             i = i + 1
-            printProgressBar(i, l, prefix='Progress:', suffix='Complete', length=50)
+            printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
         print("Codebook created")
 
+    
     def _get_img_paths(self, in_path):
         '''
         get paths of all images in root directory 
@@ -80,6 +83,7 @@ class Codebook:
 
         return img_paths
 
+   
     def _get_template_paths(self, codebook_path):
         '''
         get paths of all templates in codebook 
@@ -97,6 +101,8 @@ class Codebook:
 
         return template_paths
 
+
+   
     def get_img_data(self, img_path):
         '''
         get information from dtext filename,
@@ -107,7 +113,7 @@ class Codebook:
         '''
 
         img_data = {
-            'image_version': 0,
+            'image_version' : 0,
             'person_number': 0,
             'series_number': 0,
             'file_number': 0,
@@ -128,6 +134,7 @@ class Codebook:
 
         return img_data
 
+    
     def get_template_data(self, template_path):
         '''
         Get angle values from txt template filename
@@ -136,8 +143,7 @@ class Codebook:
         :return v_angle & h_angle obtained from template filename
         '''
 
-        v_angle = 0;
-        h_angle = 0
+        v_angle = 0; h_angle = 0
         filename = template_path.split(os.sep)[-1]
         data = re.findall("\d*\d", filename)
         signs = re.findall('[+ -]', filename)
@@ -146,6 +152,7 @@ class Codebook:
 
         return v_angle, h_angle
 
+    
     def Calc_descriptors(self, img_path):
         '''
         Calculate descriptors (HOG) for an image and return feature vector
@@ -156,19 +163,44 @@ class Codebook:
         '''
 
         img = cv.imread(img_path)
-        cell_size = (32, 32)  # w x h in pixels
-        block_size = (4, 4)  # w x h in cells
+        cell_size = (8, 8)  # w x h in pixels
+        block_size = (2, 2)  # w x h in cells
         nbins = 9  # number of orientation bins
         hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // cell_size[0] * cell_size[0],
-                                              img.shape[1] // cell_size[1] * cell_size[1]),
-                                    _blockSize=(block_size[0] * cell_size[0],
-                                                block_size[1] * cell_size[1]),
+                                             img.shape[1] // cell_size[1] * cell_size[1]),
+                                     _blockSize=(block_size[0] * cell_size[0],
+                                            block_size[1] * cell_size[1]),
                                     _blockStride=(cell_size[0], cell_size[1]),
                                     _cellSize=(cell_size[0], cell_size[1]),
                                     _nbins=nbins)
         hog_features = hog_desc.compute(img)
-        print(len(hog_features))
-        return hog_features
+
+        return hog_features;
+
+    def Calc_descriptors_Cimg(self, img):
+        '''
+        Calculate descriptors (HOG) for an camera image and return feature vector
+
+        :param image for wich calculating descriptors
+
+        :return hog_features as numpy array - our feature vector for this image
+        '''
+
+        cell_size = (8, 8)  # w x h in pixels
+        block_size = (2, 2)  # w x h in cells
+        nbins = 9  # number of orientation bins
+        hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // cell_size[0] * cell_size[0],
+                                             img.shape[1] // cell_size[1] * cell_size[1]),
+                                     _blockSize=(block_size[0] * cell_size[0],
+                                            block_size[1] * cell_size[1]),
+                                    _blockStride=(cell_size[0], cell_size[1]),
+                                    _cellSize=(cell_size[0], cell_size[1]),
+                                    _nbins=nbins)
+        hog_features = hog_desc.compute(img)
+
+        return hog_features;
+
+
 
     def Estimate_angles_for_img(self, test_img_path):
         '''
@@ -179,8 +211,7 @@ class Codebook:
         '''
 
         distance = 100000
-        vertical_angle = 0
-        horizontal_angle = 0
+        vertical_angle = 0; horizontal_angle = 0
 
         test_img_hog = self.Calc_descriptors(test_img_path)
         print("Estimating orientation for: " + test_img_path)
@@ -188,23 +219,58 @@ class Codebook:
         # Initial call to print 0% progress
         l = len(self.templates_list)
         i = 0
-        printProgressBar(0, l, prefix='Progress:', suffix='Complete', length=50)
-
+        printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+  
         for template in self.templates_list:
-            if not (test_img_hog.shape[0] == template['hog'].shape[0]):
+            if not( test_img_hog.shape[0] == template['hog'].shape[0]):
                 continue
-            temp = numpy.linalg.norm((template['hog'] - test_img_hog))
-            if (temp < distance):
+            temp = numpy.linalg.norm( (template['hog'] - test_img_hog) )
+            if( temp < distance ): 
                 distance = temp
                 vertical_angle, horizontal_angle = template['vertical'], template['horizontal']
-
+            
             # Update Progress Bar
             i = i + 1
-            printProgressBar(i, l, prefix='Progress:', suffix='Complete', length=50)
+            printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
+            if (distance <= 1):
+                i = l
+                printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+                break
 
         return vertical_angle, horizontal_angle
 
-    def Load_codebook_to_mem(self, codebook_path='Codebook'):
+
+    def Estimate_angles_for_Cimg(self, img):
+        '''
+        Calculate descriptors (HOG) for camera image, finding best matching
+        feature vector in Codebook and based on that information estimating angles
+
+        :return verical_angle & horizontal_angle estimated for input image
+        '''
+
+        distance = 100000
+        vertical_angle = 0; horizontal_angle = 0
+
+        img_hog = self.Calc_descriptors_Cimg(img)
+
+  
+        for template in self.templates_list:
+            if not( img_hog.shape[0] == template['hog'].shape[0]):
+                continue
+            temp = numpy.linalg.norm( (template['hog'] - img_hog) )
+            if( temp < distance ): 
+                distance = temp
+                vertical_angle, horizontal_angle = template['vertical'], template['horizontal']
+
+            if (distance <= 1):
+                break
+
+        return vertical_angle, horizontal_angle
+
+
+
+    def Load_codebook_to_mem(self, codebook_path = 'Codebook'):
         '''
         Load codebook templates to memory for later estimating head orientation
 
@@ -216,11 +282,11 @@ class Codebook:
         # Initial call to print 0% progress
         l = len(template_paths)
         i = 0
-        printProgressBar(0, l, prefix='Progress:', suffix='Complete', length=50)
+        printProgressBar(0, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
 
         for template_path in template_paths:
             template = {
-                'hog': 0,
+                'hog' : 0,
                 'vertical': 0,
                 'horizontal': 0
             }
@@ -228,16 +294,15 @@ class Codebook:
             template['vertical'], template['horizontal'] = \
                 self.get_template_data(template_path)
             self.templates_list.append(template)
-            # Update Progress Bar
+           # Update Progress Bar
             i = i + 1
-            printProgressBar(i, l, prefix='Progress:', suffix='Complete', length=50)
+            printProgressBar(i, l, prefix = 'Progress:', suffix = 'Complete', length = 50)
+
 
     # Print iterations progress
     # Code from https://stackoverflow.com/questions/3173320/text-progress-bar-in-the-console
-
-
-def printProgressBar(iteration, total, prefix='', suffix='',
-                     decimals=1, length=100, fill='█', printEnd="\r"):
+def printProgressBar (iteration, total, prefix = '', suffix = '', 
+                      decimals = 1, length = 100, fill = '█', printEnd = "\r"):
     """
     Call in a loop to create terminal progress bar
     @params:
@@ -253,7 +318,7 @@ def printProgressBar(iteration, total, prefix='', suffix='',
     percent = ("{0:." + str(decimals) + "f}").format(100 * (iteration / float(total)))
     filledLength = int(length * iteration // total)
     bar = fill * filledLength + '-' * (length - filledLength)
-    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end=printEnd)
+    print(f'\r{prefix} |{bar}| {percent}% {suffix}', end = printEnd)
     # Print New Line on Complete
-    if iteration == total:
+    if iteration == total: 
         print()

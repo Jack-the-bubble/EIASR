@@ -88,13 +88,11 @@ class FaceExtractor:
         self.face_cascade = cv.CascadeClassifier(self.cascade_path['front'])
         self.ext_list = ['.jpg', '.bmp', '.png']
 
-
-
     '''
     Main function of the class to prepare images before executing 
     the core algorithm in the project
     
-    Function loads in sequence all filesfrom specified in_path,
+    Function loads in sequence all files from specified in_path,
     preprocesses them and saves images to directory specified in out_path.
     '''
     def preprocess_images(self):
@@ -194,3 +192,17 @@ class FaceExtractor:
 
 
 
+    def _preprocess_cam_img(self, img):
+        desired_size = (128, 128)
+        prep_images = []
+        #self.face_cascade = cv.CascadeClassifier(self.cascade_path['front'])
+        gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
+
+        faces = self.face_cascade.detectMultiScale(gray, 1.05, 3)
+        if faces is not None:
+            for (x, y, w, h) in faces:
+                roi = gray[y:y+h, x:x+w]
+                roi = cv.resize(roi, desired_size)
+                return roi
+         
+        return None
