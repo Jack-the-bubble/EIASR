@@ -138,7 +138,7 @@
      </rect>
     </property>
     <property name="text">
-     <string>Horizontal angle:</string>
+     <string>Horizontal:</string>
     </property>
    </widget>
    <widget class="QLabel" name="lblHorizontalVal">

@@ -12,7 +12,7 @@ import Network as ntw
 import time
 
 
-#load xml created in qtCreator
+#load gui as xml created in qtCreator
 form_class = uic.loadUiType("App.ui")[0] 
 
 
@@ -20,10 +20,16 @@ capture_thread = None
 framesQueue = queue.Queue()
 isRunning = False; isStopped = False
 frameNum = 0
-save = False
- 
+
 
 def ReadFrames(camNum, queue, width, height, fps):
+    '''
+    Capture camera frames and add them to frames queue
+
+    :param queue - stores 5 last frames
+    :params width, height - size of frame to be captured
+    :param fps - numebr of frames per second captured by camera
+    '''
     global isRunning
     capture = cv2.VideoCapture(camNum)
     capture.set(cv2.CAP_PROP_FRAME_WIDTH, width)
@@ -41,7 +47,6 @@ def ReadFrames(camNum, queue, width, height, fps):
 
         if queue.qsize() >= 5:
             queue.get()
-            print (queue.qsize())
         queue.put(frame)
 
 
@@ -51,6 +56,10 @@ class CameraImageWidget(QtWidgets.QWidget):
         self.image = None
 
     def setImage(self, image):
+        '''
+        Set image to be displayed on widget
+        :param image
+        '''
         self.image = image
         sz = image.size()
         self.setMinimumSize(sz)
@@ -69,17 +78,11 @@ class MainWindowClass(QtWidgets.QMainWindow, form_class):
         self.setupUi(self)
 
         self.startButton.clicked.connect(self.start_clicked)
-        
-        #self.window_width = self.ImgWidget.frameSize().width()
-        #self.window_height = self.ImgWidget.frameSize().height()
+      
         self.ImgWidget = CameraImageWidget(self.ImgWidget)
         self.timer = QtCore.QTimer(self)
         self.timer.timeout.connect(self.update_frame)
         self.timer.start(20)
-
-    #def resizeEvent(self, event):
-    #    self.resized.emit()
-    #    return super(Window, self).resizeEvent(event)
 
     def start_clicked(self):
         global isRunning
@@ -96,14 +99,13 @@ class MainWindowClass(QtWidgets.QMainWindow, form_class):
         if not isRunning:
             isRunning = True
             capture_thread.start()
-            #self.startButton.setEnabled(False)
             self.startButton.setText('Stop')
         
 
     def update_frame(self):
         global frameNum
         if not framesQueue.empty():
-            frame = framesQueue.get()
+            frame = framesQueue.get() # obtain frame from queue
             img = frame["img"]
 
             img_height, img_width, img_colors = img.shape
@@ -115,30 +117,24 @@ class MainWindowClass(QtWidgets.QMainWindow, form_class):
             if scale == 0:
                 scale = 1
             
-            #TODO
-            imc = img[:,140:500]
+            imc = img[:,140:500] # crop bunds of image from camera to make computation easier
             frameNum = frameNum + 1
+            # Estimate and upade displayed angles for every 8th frame
             if frameNum % 8 == 0:
-                print('Frm: {}'.format(frameNum))
-                #self.lblHorizontalVal.setText('{}'.format(frameNum / 24))
                 imf = faceExr._preprocess_cam_img(imc)
-
                 if( imf is not None ):
-                    #v_angle, h_angle = angleEstHog.Estimate_angles_for_Cimg(imf)
                     hogV = angleEstHog.Calc_descriptors_Cimg(imf).T
                     h_angle, v_angle = model.predict(hogV)
                     self.lblHorizontalVal.setText('{:.1f}'.format(h_angle))
                     self.lblVerticalVal.setText('{:.1f}'.format(v_angle))
                     print('V: {:.1f}, H: {:.1f}'.format(v_angle, h_angle))
-                    #if ( (frameNum % 120) == 0 ):
-                    #    # cv2.imwrite("test{}.jpg".format(frameNum / 120), imf)
-            #END TODO
 
             img = cv2.resize(img, None, fx=scale, fy=scale, interpolation = cv2.INTER_CUBIC)
             img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             height, width, bpc = img.shape
             bpl = bpc * width
             image = QtGui.QImage(img.data, width, height, bpl, QtGui.QImage.Format_RGB888)
+            # set and display this image in image widget
             self.ImgWidget.setImage(image)
 
     def closeEvent(self, event):
@@ -146,15 +142,14 @@ class MainWindowClass(QtWidgets.QMainWindow, form_class):
         isRunning = False
 
 
-
+# Create thread to capture camera frames and add them to framesQueue
 capture_thread = threading.Thread(target=ReadFrames, args = (0, framesQueue, 640, 360, 24))
-faceExr = fe.FaceExtractor("","")
 
+faceExr = fe.FaceExtractor("","")
 angleEstHog = cb.Codebook()
-angleEstHog.Load_codebook_to_mem('Codebook_cell8x8')
 
 model = KerasRegressor(build_fn=ntw.create_model, epochs=70, batch_size=5, verbose=0)
-model.model = load_model('saved_model.h5')
+model.model = load_model('saved_model_v2.h5')
 
 app = QtWidgets.QApplication(sys.argv)
 w = MainWindowClass(None)
