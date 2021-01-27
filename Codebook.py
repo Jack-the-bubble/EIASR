@@ -17,6 +17,9 @@ class Codebook:
         '''
         self.templates_list = []
         self.ext_list = ['.jpg', '.bmp', '.png']
+        # self.cell_size = (32, 32)  # w x h in pixels
+        # self.block_size = (4, 4)  # w x h in cells
+        # self.nbins = 9  # number of orientation bins
         self.cell_size = (8, 8)  # w x h in pixels
         self.block_size = (2, 2)  # w x h in cells
         self.nbins = 9  # number of orientation bins
@@ -169,9 +172,9 @@ class Codebook:
         # cell_size = (32, 32)  # w x h in pixels
         # block_size = (4, 4)  # w x h in cells
         # nbins = 9  # number of orientation bins
-        self.cell_size = (8, 8)  # w x h in pixels
-        self.block_size = (2, 2)  # w x h in cells
-        self.nbins = 9  # number of orientation bins
+        # self.cell_size = (8, 8)  # w x h in pixels
+        # self.block_size = (2, 2)  # w x h in cells
+        # self.nbins = 9  # number of orientation bins
         hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // self.cell_size[0] * self.cell_size[0],
                                              img.shape[1] // self.cell_size[1] * self.cell_size[1]),
                                      _blockSize=(self.block_size[0] * self.cell_size[0],

@@ -7,10 +7,12 @@ import Network as ntw
 import face_extractor
 
 
-net = ntw.Network('saved_model_v3.h5')
-net.get_orientation_from_saved_image('faces\\Person02\\person02118-30-30.jpg')
+net = ntw.Network('saved_model_v4.h5')
+# net.get_orientation_from_saved_image('faces\\Person02\\person02118-30-30.jpg')
 
-#
+net.get_orientation_from_saved_hog('Codebook_cell4x4\\0person01118-30-30.npy')
+
+
 # # load network model
 # model = KerasRegressor(build_fn=ntw.create_model, epochs=70, batch_size=5, verbose=0)
 # model.model = load_model('saved_model_v3.h5')

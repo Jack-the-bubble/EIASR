@@ -134,15 +134,18 @@ class Network:
 
             self._print_formatted_orientation(hog)
 
+    def get_orientation_from_saved_hog(self, hog_path):
+        hog = np.array([get_example(hog_path)])
+        self._print_formatted_orientation(hog)
 
     def _print_formatted_orientation(self, hog):
         orientation = self.model.predict(hog)
         print(orientation)
         vertical = ("up", abs(orientation[0][0])) if orientation[0][0] > 0 else \
             ("down", abs(orientation[0][0]))
-        horizontal = ("left", abs(orientation[0][1])) if orientation[0][1] > 0 else \
-            ("right", abs(orientation[0][1]))
+        horizontal = ("right", abs(orientation[0][1])) if orientation[0][1] > 0 else \
+            ("left", abs(orientation[0][1]))
 
-        print("Head is turned {} by {} degress and {} by {} degrees.".format(
+        print("Head is turned {} by {:.1f} degress and {} by {:.1f} degrees.".format(
             vertical[0], vertical[1], horizontal[0], horizontal[1]
         ))

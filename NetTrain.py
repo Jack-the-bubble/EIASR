@@ -36,7 +36,7 @@ kfold = KFold(n_splits=10)
 #print("Baseline: %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
 estimator.fit(X, Y)
-estimator.model.save('saved_model_v3.h5')
+estimator.model.save('saved_model_v4.h5')
 prediction = estimator.predict(X)
 
 # ntw.loss_history_model(model, dataset)
