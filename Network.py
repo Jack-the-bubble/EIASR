@@ -195,6 +195,8 @@ class Network:
 
         for sample, reference in zip(X, Y):
             orientation = self.model.predict(np.array([sample]))
+            print("\nEstimated: {:.2f}    {:.2f}".format(orientation[0][0], orientation[0][1]))
+            print("Real {}".format(reference))
             horizontal = 15*round(orientation[0][0]/15)
             vertical = 15*round(orientation[0][1]/15)
 
