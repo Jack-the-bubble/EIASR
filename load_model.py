@@ -7,10 +7,10 @@ import Network as ntw
 import face_extractor
 
 
-net = ntw.Network('saved_model_v4.h5')
-# net.get_orientation_from_saved_image('faces\\Person02\\person02118-30-30.jpg')
+net = ntw.Network('saved_model_v8_block8.h5')
+net.get_orientation_from_saved_image('faces\\Person02\\person02113-60+90.jpg')
 
-net.get_orientation_from_saved_hog('Codebook_cell4x4\\0person01118-30-30.npy')
+# net.get_orientation_from_saved_hog('Codebook_cell16_block8_v2\\0person01118-30-30.npy')
 
 
 # # load network model

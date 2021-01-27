@@ -82,8 +82,11 @@ def get_example(example_path):
 
 
 def create_model():
+    codebook = cb.Codebook()
+    extractor = face_extractor.FaceExtractor('', '')
+    input_dim = ((extractor.final_size/codebook.cell_size[0])**2)*codebook.nbins
     model = Sequential()
-    model.add(Dense(144, input_dim=8100, kernel_initializer='normal', activation='relu'))
+    model.add(Dense(144, input_dim=int(input_dim), kernel_initializer='normal', activation='relu'))
     model.add(Dense(2, kernel_initializer='normal'))
 
     model.compile(loss='mean_squared_error', optimizer='adam')

@@ -17,12 +17,12 @@ from sklearn.metrics import accuracy_score
 # extractor.preprocess_images()
 
 codebook = cb.Codebook()
-# codebook.create_codebook('cropped_images', 'Codebook_cell4x4')
-codebook.Load_codebook_to_mem('Codebook_cell4x4')
+codebook.create_codebook('cropped_images', 'Codebook_cell16_block8_v2')
+codebook.Load_codebook_to_mem('Codebook_cell16_block8_v2')
 # v_angle, h_angle = codebook.Estimate_angles_for_img('cropped_images/Person15/0person15115-30-75.jpg')
 # print("Estimated orientation: Vertical= {}, Horizontal= {}".format(v_angle, h_angle))
 
-dataset = ntw.prepare_data('Codebook_cell4x4')
+dataset = ntw.prepare_data('Codebook_cell16_block8_v2')
 dataset = dataset.values
 
 X = dataset[:, :-2]
@@ -36,14 +36,14 @@ kfold = KFold(n_splits=10)
 #print("Baseline: %.2f (%.2f) MSE" % (results.mean(), results.std()))
 
 estimator.fit(X, Y)
-estimator.model.save('saved_model_v4.h5')
+estimator.model.save('saved_model_v8_block8.h5')
 prediction = estimator.predict(X)
 
 # ntw.loss_history_model(model, dataset)
 
 print(prediction)
 
-ex = ntw.get_example('Codebook_cell4x4\\0person01118-30-30.npy')
+ex = ntw.get_example('Codebook_cell16_block8_v2\\0person01118-30-30.npy')
 
 ex = np.array([ex])
 print(estimator.predict(ex))

@@ -20,9 +20,9 @@ class Codebook:
         # self.cell_size = (32, 32)  # w x h in pixels
         # self.block_size = (4, 4)  # w x h in cells
         # self.nbins = 9  # number of orientation bins
-        self.cell_size = (8, 8)  # w x h in pixels
-        self.block_size = (2, 2)  # w x h in cells
-        self.nbins = 9  # number of orientation bins
+        self.cell_size = (16, 16)  # w x h in pixels
+        self.block_size = (8, 8)  # w x h in cells
+        self.nbins = 5  # number of orientation bins
 
 
     

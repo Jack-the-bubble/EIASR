@@ -87,6 +87,7 @@ class FaceExtractor:
                              'side': 'haarcascade_sideface.xml'}
         self.face_cascade = cv.CascadeClassifier(self.cascade_path['front'])
         self.ext_list = ['.jpg', '.bmp', '.png']
+        self.final_size = 128
 
     '''
     Main function of the class to prepare images before executing 
@@ -154,7 +155,7 @@ class FaceExtractor:
     def _preprocess_img(self, img_path, use_metadata=False):
         img = cv.imread(img_path)
         img_data = get_img_data(img_path)
-        desired_size = (128, 128)
+        desired_size = (self.final_size, self.final_size)
         threshold = 30
         prep_images = []
 
@@ -178,10 +179,13 @@ class FaceExtractor:
         if faces is not None:
             for (x, y, w, h) in faces:
                 # flip back if head is supposed to be facing left
-                if img_data['horizontal'] > threshold:
-                    gray = cv.flip(gray, 1)
+                # if img_data['horizontal'] > threshold:
+                #     gray = cv.flip(gray, 1)
 
                 roi = gray[y:y+h, x:x+w]
+                if img_data['horizontal'] > threshold:
+                    roi = cv.flip(roi, 1)
+
                 roi = cv.resize(roi, desired_size)
                 prep_images.append(roi)
 
