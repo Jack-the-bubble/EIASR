@@ -199,6 +199,9 @@ class FaceExtractor:
     '''
     def preprocess_image_from_path(self, img_path):
         img = cv.imread(img_path)
+        if img is None:
+            return []
+
         desired_size = (128, 128)
         threshold = 30
         prep_images = []
@@ -206,22 +209,30 @@ class FaceExtractor:
         # check front first
         self.face_cascade = cv.CascadeClassifier(self.cascade_path['front'])
         gray = cv.cvtColor(img, cv.COLOR_BGR2GRAY)
-        faces = self.face_cascade.detectMultiScale(gray, 1.05, 3)
 
-        if faces is not None:
-            for (x, y, w, h) in faces:
-                roi = gray[y:y + h, x:x + w]
-                roi = cv.resize(roi, desired_size)
-                prep_images.append(roi)
-                # only calculate orientation for the first detected face
-                break
+        for x in range(3):
+            # check right side
+            if x == 1:
+                self.face_cascade = cv.CascadeClassifier(
+                    self.cascade_path['side'])
 
-            return prep_images
+            # check left
+            if x == 2:
+                gray = cv.flip(gray, 1)
 
-        # check right side
+            faces = self.face_cascade.detectMultiScale(gray, 1.05, 3)
+            if faces is not None:
+                for (x, y, w, h) in faces:
+                    roi = gray[y:y + h, x:x + w]
+                    if x == 2:
+                        roi = cv.flip(roi, 1)
 
-        # then check left side
+                    roi = cv.resize(roi, desired_size)
+                    prep_images.append(roi)
+                    # only calculate orientation for the first detected face
+                    return prep_images
 
+        return []
 
     def _preprocess_cam_img(self, img):
         desired_size = (128, 128)

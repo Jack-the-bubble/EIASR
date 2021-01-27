@@ -6,17 +6,22 @@ import os
 import numpy
 import re
 import tensorflow as tf
-from keras.models import Sequential
+from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout
 from keras.initializers import RandomUniform
 from keras.callbacks import EarlyStopping
+
 from keras import backend as K
+from keras.wrappers.scikit_learn import KerasRegressor
 
 from sklearn.preprocessing import MinMaxScaler
 
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
+
+import face_extractor
+import Codebook as cb
 
 
 def get_sample_data(template_path):
@@ -110,7 +115,34 @@ def loss_history_model(model, dataset):
 
 
 class Network:
-    def __init__(self):
+    def __init__(self, saved_model_path):
         '''
         constructor function for the class
         '''
+        self.model = KerasRegressor(build_fn=create_model, epochs=70,
+                                    batch_size=5, verbose=0)
+
+        self.model.model = load_model(saved_model_path)
+        self.extractor = face_extractor.FaceExtractor('', '')
+        self.codebook = cb.Codebook()
+
+
+    def get_orientation_from_saved_image(self, image_path):
+        faces = self.extractor.preprocess_image_from_path(image_path)
+        if faces:
+            hog = self.codebook.get_descriptors_for_network(faces[0])
+
+            self._print_formatted_orientation(hog)
+
+
+    def _print_formatted_orientation(self, hog):
+        orientation = self.model.predict(hog)
+        print(orientation)
+        vertical = ("up", abs(orientation[0][0])) if orientation[0][0] > 0 else \
+            ("down", abs(orientation[0][0]))
+        horizontal = ("left", abs(orientation[0][1])) if orientation[0][1] > 0 else \
+            ("right", abs(orientation[0][1]))
+
+        print("Head is turned {} by {} degress and {} by {} degrees.".format(
+            vertical[0], vertical[1], horizontal[0], horizontal[1]
+        ))

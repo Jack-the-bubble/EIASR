@@ -17,6 +17,9 @@ class Codebook:
         '''
         self.templates_list = []
         self.ext_list = ['.jpg', '.bmp', '.png']
+        self.cell_size = (8, 8)  # w x h in pixels
+        self.block_size = (2, 2)  # w x h in cells
+        self.nbins = 9  # number of orientation bins
 
 
     
@@ -163,16 +166,19 @@ class Codebook:
         '''
 
         img = cv.imread(img_path)
-        cell_size = (8, 8)  # w x h in pixels
-        block_size = (2, 2)  # w x h in cells
-        nbins = 9  # number of orientation bins
-        hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // cell_size[0] * cell_size[0],
-                                             img.shape[1] // cell_size[1] * cell_size[1]),
-                                     _blockSize=(block_size[0] * cell_size[0],
-                                            block_size[1] * cell_size[1]),
-                                    _blockStride=(cell_size[0], cell_size[1]),
-                                    _cellSize=(cell_size[0], cell_size[1]),
-                                    _nbins=nbins)
+        # cell_size = (32, 32)  # w x h in pixels
+        # block_size = (4, 4)  # w x h in cells
+        # nbins = 9  # number of orientation bins
+        self.cell_size = (8, 8)  # w x h in pixels
+        self.block_size = (2, 2)  # w x h in cells
+        self.nbins = 9  # number of orientation bins
+        hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // self.cell_size[0] * self.cell_size[0],
+                                             img.shape[1] // self.cell_size[1] * self.cell_size[1]),
+                                     _blockSize=(self.block_size[0] * self.cell_size[0],
+                                            self.block_size[1] * self.cell_size[1]),
+                                    _blockStride=(self.cell_size[0], self.cell_size[1]),
+                                    _cellSize=(self.cell_size[0], self.cell_size[1]),
+                                    _nbins=self.nbins)
         hog_features = hog_desc.compute(img)
 
         return hog_features;
@@ -186,20 +192,28 @@ class Codebook:
         :return hog_features as numpy array - our feature vector for this image
         '''
 
-        cell_size = (8, 8)  # w x h in pixels
-        block_size = (2, 2)  # w x h in cells
-        nbins = 9  # number of orientation bins
-        hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // cell_size[0] * cell_size[0],
-                                             img.shape[1] // cell_size[1] * cell_size[1]),
-                                     _blockSize=(block_size[0] * cell_size[0],
-                                            block_size[1] * cell_size[1]),
-                                    _blockStride=(cell_size[0], cell_size[1]),
-                                    _cellSize=(cell_size[0], cell_size[1]),
-                                    _nbins=nbins)
+        hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // self.cell_size[0] * self.cell_size[0],
+                                             img.shape[1] // self.cell_size[1] * self.cell_size[1]),
+                                     _blockSize=(self.block_size[0] * self.cell_size[0],
+                                            self.block_size[1] * self.cell_size[1]),
+                                    _blockStride=(self.cell_size[0], self.cell_size[1]),
+                                    _cellSize=(self.cell_size[0], self.cell_size[1]),
+                                    _nbins=self.nbins)
         hog_features = hog_desc.compute(img)
 
         return hog_features
 
+
+    def get_descriptors_for_network(self, img):
+        hog_desc = cv.HOGDescriptor(_winSize=(img.shape[0] // self.cell_size[0] * self.cell_size[0],
+                                             img.shape[1] // self.cell_size[1] * self.cell_size[1]),
+                                     _blockSize=(self.block_size[0] * self.cell_size[0],
+                                            self.block_size[1] * self.cell_size[1]),
+                                    _blockStride=(self.cell_size[0], self.cell_size[1]),
+                                    _cellSize=(self.cell_size[0], self.cell_size[1]),
+                                    _nbins=self.nbins)
+        hog_features = hog_desc.compute(img)
+        return numpy.array([[x[0] for x in hog_features]])
 
 
     def Estimate_angles_for_img(self, test_img_path):
