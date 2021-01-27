@@ -44,6 +44,40 @@ def _get_samples_paths(codebook_path):
 
     return template_paths
 
+def prepare_train_and_test_data(codebook_path, test_target):
+    train_set = pd.DataFrame()
+    test_set = pd.DataFrame()
+    final_train = []
+    final_test = []
+
+    list_of_names = _get_samples_paths(codebook_path)
+    for sample in list_of_names:
+        vertical, horizontal = get_sample_data(sample)
+        hogs = numpy.load(sample)
+        train_list = []
+        test_list = []
+        if '0person'+test_target in sample:
+            for x in hogs:
+                test_list.append(x[0])
+
+            test_list.append(horizontal)
+            test_list.append(vertical)
+            final_test.append(test_list)
+
+        else:
+            for x in hogs:
+                train_list.append(x[0])
+
+            train_list.append(horizontal)
+            train_list.append(vertical)
+            final_train.append(train_list)
+
+    test_set = test_set.append(final_test, ignore_index=True)
+    train_set = train_set.append(final_train, ignore_index=True)
+
+    return train_set, test_set
+
+
 
 def prepare_data(codebook_path='Codebook'):
     # columns = [*range(4, 1770, 1)]
@@ -143,12 +177,32 @@ class Network:
 
     def _print_formatted_orientation(self, hog):
         orientation = self.model.predict(hog)
-        print(orientation)
-        vertical = ("up", abs(orientation[0][0])) if orientation[0][0] > 0 else \
-            ("down", abs(orientation[0][0]))
-        horizontal = ("right", abs(orientation[0][1])) if orientation[0][1] > 0 else \
-            ("left", abs(orientation[0][1]))
+        # print(orientation)
+        vertical = ("up", abs(orientation[0][1])) if orientation[0][1] > 0 else \
+            ("down", abs(orientation[0][1]))
+        horizontal = ("right", abs(orientation[0][0])) if orientation[0][0] > 0 else \
+            ("left", abs(orientation[0][0]))
 
         print("Head is turned {} by {:.1f} degress and {} by {:.1f} degrees.".format(
             vertical[0], vertical[1], horizontal[0], horizontal[1]
         ))
+
+    def test_model(self, test_array):
+        X = test_array[:, :-2]
+        Y = test_array[:, -2:]
+        passed = 0
+        train_size = 0
+
+        for sample, reference in zip(X, Y):
+            orientation = self.model.predict(np.array([sample]))
+            horizontal = 15*round(orientation[0][0]/15)
+            vertical = 15*round(orientation[0][1]/15)
+
+            train_size = train_size+1
+            if horizontal == reference[0] and vertical == reference[1]:
+                passed = passed + 1
+
+        print("Accuracy of {:.2f}".format(passed/train_size))
+
+
+
