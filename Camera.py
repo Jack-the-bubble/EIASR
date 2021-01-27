@@ -151,7 +151,7 @@ capture_thread = threading.Thread(target=ReadFrames, args = (0, framesQueue, 640
 faceExr = fe.FaceExtractor("","")
 
 angleEstHog = cb.Codebook()
-angleEstHog.Load_codebook_to_mem('Codebook_cell8x8')
+angleEstHog.Load_codebook_to_mem('Codebook_cell16_block8_v2')
 
 model = KerasRegressor(build_fn=ntw.create_model, epochs=70, batch_size=5, verbose=0)
 model.model = load_model('saved_model.h5')
